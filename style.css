@@ -1,0 +1,65 @@
+/* Reset default styling */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(120deg, #1e1e2f, #3b3b5c);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+}
+
+nav .logo {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 40px;
+}
+
+.hero h1 {
+  font-size: 2.8rem;
+  margin-bottom: 20px;
+  color: #00c9a7;
+}
+
+.tagline {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: #e0e0e0;
+}
+
+.coming-soon {
+  font-size: 1.1rem;
+  background-color: #00c9a7;
+  padding: 10px 20px;
+  display: inline-block;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: #1e1e2f;
+  font-weight: bold;
+}
+
+.founder {
+  font-size: 1rem;
+  margin-top: 20px;
+  color: #ccc;
+}
+
+footer {
+  margin-top: 60px;
+  font-size: 0.9rem;
+  color: #888;
+}
