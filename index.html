@@ -176,45 +176,49 @@
             return messageDiv; // Return the message div for updates
         }
 
-        window.sendMessage = async function() {
+        window.sendMessage = async function () {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
-
+        
             if (!message) return;
-
+        
             if (!appState.currentUser && appState.questionsAsked >= appState.maxQuestions) {
                 window.showAuth('register');
                 return;
             }
-
+        
             if (!appState.currentUser) {
                 appState.questionsAsked++;
                 updateUsageCounter();
             }
-
+        
             addMessage(message, 'user');
             input.value = '';
-
+        
             const loadingDiv = addMessage('Thinking...', 'ai');
-
+        
             // Enable the "Stop" button
             const stopButton = document.getElementById('stopButton');
             stopButton.style.display = 'inline-block';
             stopButton.disabled = false;
-
+        
             // Abort controller for canceling the request
             abortController = new AbortController();
-
+        
             try {
-                const response = await fetch(`https://your-api-endpoint`, {
+                // Replace `https://your-gemini-api-endpoint` with the actual Gemini API endpoint
+                const response = await fetch('https://your-gemini-api-endpoint', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${'AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q'}` // Use your Gemini API key
+                    },
                     body: JSON.stringify({ prompt: message }),
                     signal: abortController.signal // Attach the abort signal
                 });
-
-                if (!response.ok) throw new Error('Failed to fetch response');
-
+        
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
                 const data = await response.json();
                 loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${sanitizeHTML(data.reply)}`;
             } catch (error) {
@@ -229,8 +233,8 @@
                 stopButton.style.display = 'none';
             }
         };
-
-        window.stopResponse = function() {
+        
+        window.stopResponse = function () {
             if (abortController) {
                 abortController.abort(); // Cancel the ongoing request
                 abortController = null;
