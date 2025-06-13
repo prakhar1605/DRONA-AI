@@ -206,18 +206,20 @@
             abortController = new AbortController();
         
             try {
-                // Replace `https://your-gemini-api-endpoint` with the actual Gemini API endpoint
+                // Replace this with the actual Gemini API endpoint
                 const response = await fetch('https://your-gemini-api-endpoint', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${'AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q'}` // Use your Gemini API key
+                        'Authorization': `Bearer AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q` // Use your Gemini API key
                     },
                     body: JSON.stringify({ prompt: message }),
                     signal: abortController.signal // Attach the abort signal
                 });
         
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
         
                 const data = await response.json();
                 loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${sanitizeHTML(data.reply)}`;
