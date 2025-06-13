@@ -16,17 +16,24 @@
             onAuthStateChanged, 
             signOut 
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc,
+            updateDoc,
+            increment
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        // Firebase Configuration (Replace with environment variables)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB4Mv54EBKRwLGeoZGC1-LbKRn-AjH5IUM",
-  authDomain: "drona-ai-ad064.firebaseapp.com",
-  projectId: "drona-ai-ad064",
-  storageBucket: "drona-ai-ad064.firebasestorage.app",
-  messagingSenderId: "1072044159719",
-  appId: "1:1072044159719:web:a03f848e57543607c3e842",
-  measurementId: "G-2XVBZCJZ00"
+            authDomain: "drona-ai-ad064.firebaseapp.com",
+            projectId: "drona-ai-ad064",
+            storageBucket: "drona-ai-ad064.appspot.com",
+            messagingSenderId: "1072044159719",
+            appId: "1:1072044159719:web:a03f848e57543607c3e842",
+            measurementId: "G-2XVBZCJZ00"
         };
 
         // Initialize Firebase
@@ -34,12 +41,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Global Variables (Encapsulated in an object)
+        // Global Variables
         const appState = {
             currentUser: null,
             questionsAsked: 0,
             isAuthMode: 'login',
-            maxQuestions: 5
+            maxQuestions: 5,
+            lastQuestionTime: 0
         };
 
         // Utility Functions
@@ -82,6 +90,8 @@
 
         window.closeAuth = function() {
             document.getElementById('authModal').style.display = 'none';
+            document.getElementById('authEmail').value = '';
+            document.getElementById('authPassword').value = '';
         };
 
         window.switchAuthMode = function() {
@@ -103,6 +113,13 @@
                     await signInWithEmailAndPassword(auth, email, password);
                 } else {
                     await createUserWithEmailAndPassword(auth, email, password);
+                    // Create user document in Firestore
+                    const user = auth.currentUser;
+                    await setDoc(doc(db, "users", user.uid), {
+                        email: user.email,
+                        createdAt: new Date(),
+                        questionCount: 0
+                    });
                 }
                 window.closeAuth();
             } catch (error) {
@@ -113,7 +130,18 @@
         window.signInWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                // Create user document if new user
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, "users", user.uid), {
+                        email: user.email,
+                        name: user.displayName,
+                        createdAt: new Date(),
+                        questionCount: 0
+                    });
+                }
                 window.closeAuth();
             } catch (error) {
                 alert(`Google Sign-In Error: ${error.message}`);
@@ -121,7 +149,7 @@
         };
 
         // Auth State Observer
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             appState.currentUser = user;
             const authButtons = document.querySelector('.auth-buttons');
             const usageCounter = document.getElementById('usageCounter');
@@ -135,12 +163,20 @@
                     </span>
                 `;
                 usageCounter.style.display = 'none';
+                
+                // Load user's question count
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    appState.questionsAsked = userDoc.data().questionCount || 0;
+                }
             } else {
                 authButtons.innerHTML = `
                     <button class="btn btn-outline" onclick="window.showAuth('login')">Login</button>
                     <button class="btn btn-primary" onclick="window.showAuth('register')">Sign Up</button>
                 `;
                 usageCounter.style.display = 'block';
+                appState.questionsAsked = 0;
+                updateUsageCounter();
             }
         });
 
@@ -148,7 +184,7 @@
             signOut(auth).catch(error => alert(`Sign-Out Error: ${error.message}`));
         };
 
-        let abortController = null; // To handle the "Stop" button functionality
+        let abortController = null;
 
         // Chat Functions
         window.startChat = function() {
@@ -173,7 +209,43 @@
             messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Drona AI'}:</strong> ${sanitizeHTML(text)}`;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            return messageDiv; // Return the message div for updates
+            return messageDiv;
+        }
+
+        // Backend API call to Gemini
+        async function callGeminiAPI(message) {
+            // Rate limiting: 1 question per 5 seconds
+            const now = Date.now();
+            if (now - appState.lastQuestionTime < 5000) {
+                throw new Error('Please wait a few seconds before asking another question');
+            }
+            appState.lastQuestionTime = now;
+
+            const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: message
+                                }
+                            ]
+                        }
+                    ]
+                }),
+                signal: abortController ? abortController.signal : null
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'API request failed');
+            }
+
+            return await response.json();
         }
 
         window.sendMessage = async function () {
@@ -182,14 +254,10 @@
         
             if (!message) return;
         
+            // Check question limits
             if (!appState.currentUser && appState.questionsAsked >= appState.maxQuestions) {
                 window.showAuth('register');
                 return;
-            }
-        
-            if (!appState.currentUser) {
-                appState.questionsAsked++;
-                updateUsageCounter();
             }
         
             addMessage(message, 'user');
@@ -204,34 +272,20 @@
             abortController = new AbortController();
         
             try {
-                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [
-                            {
-                                parts: [
-                                    {
-                                        text: message
-                                    }
-                                ]
-                            }
-                        ]
-                    }),
-                    signal: abortController.signal
-                });
-        
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('API Error:', errorData); // Log the error details
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // Update question count
+                if (!appState.currentUser) {
+                    appState.questionsAsked++;
+                    updateUsageCounter();
+                } else {
+                    // Update Firestore for authenticated users
+                    await updateDoc(doc(db, "users", appState.currentUser.uid), {
+                        questionCount: increment(1)
+                    });
+                    appState.questionsAsked++;
                 }
-        
-                const data = await response.json();
-                console.log('API Response:', data); // Log the full response for debugging
-        
+                
+                // Call Gemini API
+                const data = await callGeminiAPI(message);
                 const reply = data.contents?.[0]?.parts?.[0]?.text || "Sorry, I couldn't process your request.";
                 loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${sanitizeHTML(reply)}`;
             } catch (error) {
@@ -239,17 +293,23 @@
                     loadingDiv.innerHTML = `<strong>Drona AI:</strong> Response stopped by the user.`;
                 } else {
                     console.error('Error:', error);
-                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I couldn't process your request.`;
+                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${sanitizeHTML(error.message || 'Sorry, an error occurred.')}`;
+                    
+                    // Revert question count if error
+                    if (!appState.currentUser) {
+                        appState.questionsAsked = Math.max(0, appState.questionsAsked - 1);
+                        updateUsageCounter();
+                    }
                 }
             } finally {
                 stopButton.style.display = 'none';
+                abortController = null;
             }
         };
         
         window.stopResponse = function () {
             if (abortController) {
-                abortController.abort(); // Cancel the ongoing request
-                abortController = null;
+                abortController.abort();
             }
             const stopButton = document.getElementById('stopButton');
             stopButton.disabled = true;
@@ -260,6 +320,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Your original CSS remains completely unchanged */
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
