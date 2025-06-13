@@ -148,6 +148,8 @@
             signOut(auth).catch(error => alert(`Sign-Out Error: ${error.message}`));
         };
 
+        let abortController = null; // To handle the "Stop" button functionality
+
         // Chat Functions
         window.startChat = function() {
             document.getElementById('chatContainer').style.display = 'block';
@@ -171,6 +173,7 @@
             messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Drona AI'}:</strong> ${sanitizeHTML(text)}`;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return messageDiv; // Return the message div for updates
         }
 
         window.sendMessage = async function() {
@@ -194,11 +197,20 @@
 
             const loadingDiv = addMessage('Thinking...', 'ai');
 
+            // Enable the "Stop" button
+            const stopButton = document.getElementById('stopButton');
+            stopButton.style.display = 'inline-block';
+            stopButton.disabled = false;
+
+            // Abort controller for canceling the request
+            abortController = new AbortController();
+
             try {
                 const response = await fetch(`https://your-api-endpoint`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: message })
+                    body: JSON.stringify({ prompt: message }),
+                    signal: abortController.signal // Attach the abort signal
                 });
 
                 if (!response.ok) throw new Error('Failed to fetch response');
@@ -206,9 +218,25 @@
                 const data = await response.json();
                 loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${sanitizeHTML(data.reply)}`;
             } catch (error) {
-                console.error('Error:', error);
-                loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I couldn't process your request.`;
+                if (error.name === 'AbortError') {
+                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> Response stopped by the user.`;
+                } else {
+                    console.error('Error:', error);
+                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I couldn't process your request.`;
+                }
+            } finally {
+                // Disable the "Stop" button after the response
+                stopButton.style.display = 'none';
             }
+        };
+
+        window.stopResponse = function() {
+            if (abortController) {
+                abortController.abort(); // Cancel the ongoing request
+                abortController = null;
+            }
+            const stopButton = document.getElementById('stopButton');
+            stopButton.disabled = true;
         };
 
         updateUsageCounter();
@@ -973,6 +1001,9 @@
             <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
             <button class="send-button" onclick="sendMessage()">
                 <i class="fas fa-paper-plane"></i>
+            </button>
+            <button id="stopButton" class="send-button" onclick="stopResponse()" style="display: none; background: #ff6b6b;">
+                Stop
             </button>
         </div>
     </div>
