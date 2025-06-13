@@ -8,7 +8,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --accent-color: #4ecdc4;
+            --accent-dark: #45b7d1;
+            --text-light: #ffffff;
+            --text-dark: #333333;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -16,36 +29,15 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary-gradient);
+            color: var(--text-light);
             overflow-x: hidden;
             line-height: 1.6;
-            cursor: none;
+            cursor: default; /* Restore default cursor */
         }
 
-        /* Custom Cursor */
-        .cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: all 0.1s ease;
-            mix-blend-mode: difference;
-        }
-
-        .cursor-trail {
-            width: 8px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9998;
-        }
+        /* Cursor styles removed */
 
         /* Navigation */
         .navbar {
@@ -71,7 +63,7 @@
         .logo {
             font-size: 1.8rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background: linear-gradient(45deg, #ff6b6b, var(--accent-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -82,7 +74,7 @@
         }
 
         .nav-links a {
-            color: white;
+            color: var(--text-light);
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -90,7 +82,7 @@
         }
 
         .nav-links a:hover {
-            color: #4ecdc4;
+            color: var(--accent-color);
             transform: translateY(-2px);
         }
 
@@ -113,25 +105,25 @@
 
         .btn-outline {
             background: transparent;
-            border: 2px solid white;
-            color: white;
+            border: 2px solid var(--text-light);
+            color: var(--text-light);
         }
 
         .btn-outline:hover {
-            background: white;
+            background: var(--text-light);
             color: #667eea;
             transform: translateY(-2px);
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
+            background: linear-gradient(45deg, #ff6b6b, var(--accent-color));
+            color: var(--text-light);
             border: none;
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow);
         }
 
         /* Mobile Menu */
@@ -144,7 +136,7 @@
             display: block;
             width: 25px;
             height: 3px;
-            background: white;
+            background: var(--text-light);
             margin: 5px 0;
             transition: 0.3s;
         }
@@ -157,7 +149,7 @@
             justify-content: center;
             text-align: center;
             position: relative;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: var(--secondary-gradient);
             overflow: hidden;
         }
 
@@ -187,7 +179,7 @@
             font-size: 4rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background: linear-gradient(45deg, #ff6b6b, var(--accent-color), var(--accent-dark));
             background-size: 300% 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -209,16 +201,34 @@
         .cta-button {
             display: inline-block;
             padding: 15px 40px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
+            background: linear-gradient(45deg, #ff6b6b, var(--accent-color));
+            color: var(--text-light);
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
             font-size: 1.1rem;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow);
             border: none;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(25deg);
+            transition: all 0.4s;
+        }
+
+        .cta-button:hover::after {
+            left: 120%;
         }
 
         .cta-button:hover {
@@ -250,9 +260,15 @@
         .chat-close {
             background: none;
             border: none;
-            color: white;
+            color: var(--text-light);
             font-size: 1.5rem;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-close:hover {
+            transform: rotate(90deg);
+            color: var(--accent-color);
         }
 
         .chat-messages {
@@ -275,12 +291,14 @@
             align-self: flex-end;
             background: linear-gradient(45deg, #667eea, #764ba2);
             margin-left: 20%;
+            border-bottom-right-radius: 5px;
         }
 
         .message.ai {
             align-self: flex-start;
             background: linear-gradient(45deg, #f093fb, #f5576c);
             margin-right: 20%;
+            border-bottom-left-radius: 5px;
         }
 
         @keyframes slideIn {
@@ -305,9 +323,14 @@
             border: none;
             border-radius: 25px;
             background: rgba(255,255,255,0.1);
-            color: white;
+            color: var(--text-light);
             font-size: 1rem;
             outline: none;
+            transition: all 0.3s;
+        }
+
+        .chat-input:focus {
+            box-shadow: 0 0 0 2px var(--accent-color);
         }
 
         .chat-input::placeholder {
@@ -315,13 +338,16 @@
         }
 
         .send-button {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background: linear-gradient(45deg, #ff6b6b, var(--accent-color));
             border: none;
-            color: white;
+            color: var(--text-light);
             padding: 15px 20px;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .send-button:hover {
@@ -340,13 +366,29 @@
             margin: 0 auto;
         }
 
-        .features h2 {
+        .section-title {
             text-align: center;
             font-size: 3rem;
             margin-bottom: 3rem;
             background: linear-gradient(45deg, #fff, #e0e0e0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 2px;
         }
 
         .features-grid {
@@ -357,19 +399,38 @@
         }
 
         .feature-card {
-            background: rgba(255,255,255,0.1);
+            background: var(--card-bg);
             padding: 40px;
             border-radius: 20px;
             text-align: center;
             transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid var(--card-border);
             backdrop-filter: blur(10px);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--accent-color);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
         }
 
         .feature-card:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow);
             background: rgba(255,255,255,0.15);
         }
 
@@ -403,6 +464,7 @@
             max-width: 400px;
             width: 90%;
             text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .auth-input {
@@ -412,9 +474,14 @@
             border: none;
             border-radius: 10px;
             background: rgba(255,255,255,0.1);
-            color: white;
+            color: var(--text-light);
             font-size: 1rem;
             outline: none;
+            transition: all 0.3s;
+        }
+
+        .auth-input:focus {
+            box-shadow: 0 0 0 2px var(--accent-color);
         }
 
         .auth-input::placeholder {
@@ -423,7 +490,7 @@
 
         .google-btn {
             background: #4285f4;
-            color: white;
+            color: var(--text-light);
             border: none;
             padding: 15px 30px;
             border-radius: 10px;
@@ -432,6 +499,10 @@
             width: 100%;
             margin: 10px 0;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .google-btn:hover {
@@ -444,6 +515,52 @@
             padding: 60px 20px 30px;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             text-align: center;
+        }
+
+        .footer h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .contact-info p {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .footer-links a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #ff6b6b;
+            transform: translateY(-3px);
         }
 
         /* Responsive Design */
@@ -464,7 +581,7 @@
                 font-size: 1.1rem; 
             }
             
-            .features h2 { 
+            .section-title { 
                 font-size: 2rem; 
             }
             
@@ -475,6 +592,11 @@
             .auth-content {
                 width: 95%;
                 padding: 30px 20px;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
             }
         }
 
@@ -525,17 +647,27 @@
             border-radius: 15px;
             font-size: 0.9rem;
             z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .hidden {
             display: none;
         }
+        
+        .feature-card h3 {
+            margin: 15px 0;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
-    <!-- Custom Cursor -->
-    <div class="cursor"></div>
-    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
@@ -560,6 +692,7 @@
 
     <!-- Usage Counter -->
     <div class="usage-counter" id="usageCounter">
+        <i class="fas fa-question-circle"></i>
         Free Questions: <span id="questionsLeft">5</span>/5
     </div>
 
@@ -576,14 +709,16 @@
         <div class="hero-content">
             <h1>Drona AI</h1>
             <p>Your Modern Dronacharya in the Battle of Exams</p>
-            <button class="cta-button" onclick="startChat()">Start Learning Now</button>
+            <button class="cta-button" onclick="startChat()">
+                Start Learning Now <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
+            </button>
         </div>
     </section>
 
     <!-- Features Section -->
     <section class="features" id="features">
         <div class="container">
-            <h2>Why Choose Drona AI?</h2>
+            <h2 class="section-title">Why Choose Drona AI?</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <span class="feature-icon">🤖</span>
@@ -659,7 +794,7 @@
                 
                 <p style="margin-top: 20px; font-size: 0.9rem;">
                     <span id="authSwitchText">Don't have an account?</span>
-                    <a href="#" onclick="switchAuthMode()" style="color: #4ecdc4; text-decoration: none;">
+                    <a href="#" onclick="switchAuthMode()" style="color: var(--accent-color); text-decoration: none;">
                         <span id="authSwitchLink">Sign Up</span>
                     </a>
                 </p>
@@ -674,13 +809,13 @@
         <div class="container">
             <h2>Ready to Excel in Your Exams?</h2>
             <p>Join thousands of students who are already learning smarter with Drona AI</p>
-            <div style="margin: 30px 0;">
+            <div class="contact-info">
                 <p><i class="fas fa-phone"></i> WhatsApp: +91 8840143809</p>
-                <p><i class="fas fa-envelope"></i> Contact us for any queries</p>
+                <p><i class="fas fa-envelope"></i> Email: contactdronaai@gmail.com</p>
             </div>
-            <div style="margin: 30px 0;">
-                <a href="#" onclick="showPrivacyPolicy()" style="color: #4ecdc4; margin: 0 15px;">Privacy Policy</a>
-                <a href="#" onclick="showTerms()" style="color: #4ecdc4; margin: 0 15px;">Terms of Service</a>
+            <div class="footer-links">
+                <a href="#" onclick="showPrivacyPolicy()">Privacy Policy</a>
+                <a href="#" onclick="showTerms()">Terms of Service</a>
             </div>
             <p style="margin-top: 40px; opacity: 0.7;">© 2025 Drona AI. Empowering students to achieve their dreams.</p>
         </div>
@@ -706,35 +841,6 @@
         let currentUser = null;
         let questionsAsked = 0;
         let isAuthMode = 'login';
-        let cursorTrails = [];
-
-        // Custom Cursor
-        const cursor = document.querySelector('.cursor');
-        let mouseX = 0, mouseY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            cursor.style.left = mouseX - 10 + 'px';
-            cursor.style.top = mouseY - 10 + 'px';
-            
-            // Create trail effect
-            createCursorTrail(mouseX, mouseY);
-        });
-
-        function createCursorTrail(x, y) {
-            const trail = document.createElement('div');
-            trail.className = 'cursor-trail';
-            trail.style.left = x - 4 + 'px';
-            trail.style.top = y - 4 + 'px';
-            document.body.appendChild(trail);
-            
-            setTimeout(() => {
-                trail.style.opacity = '0';
-                setTimeout(() => trail.remove(), 300);
-            }, 50);
-        }
 
         // Authentication Functions
         function showAuth(mode) {
@@ -809,7 +915,10 @@
             if (user) {
                 document.querySelector('.auth-buttons').innerHTML = `
                     <button class="btn btn-outline" onclick="auth.signOut()">Logout</button>
-                    <span style="margin-left: 10px;">Welcome, ${user.displayName || user.email}</span>
+                    <span style="margin-left: 10px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-user-circle"></i> 
+                        ${user.displayName || user.email}
+                    </span>
                 `;
                 document.getElementById('usageCounter').style.display = 'none';
             } else {
@@ -837,6 +946,25 @@
             }
         }
 
+        // Function to add a message to the chat
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Drona AI'}:</strong> ${text}`;
+            
+            messagesContainer.appendChild(messageDiv);
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        function updateUsageCounter() {
+            document.getElementById('questionsLeft').textContent = (5 - questionsAsked).toString();
+        }
+
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
@@ -858,10 +986,10 @@
             input.value = '';
 
             // Show loading
-            const loadingDiv = addMessage('Thinking...', 'ai', true);
+            const loadingDiv = addMessage('<span class="loading"></span> Thinking...', 'ai');
 
             try {
-                // Call Gemini API
+                // Updated Gemini API request format
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q`, {
                     method: 'POST',
                     headers: {
@@ -870,4 +998,54 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `You are Drona AI, an expert AI tutor. Answer this student's
+                                text: `You are Drona AI, an expert AI tutor. Answer this student's question clearly and helpfully. Keep responses concise and educational.\n\nStudent: ${message}\nDrona AI:`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 1024
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Check for API errors
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'API request failed');
+                }
+                
+                // Validate response structure
+                if (data.candidates && 
+                    data.candidates.length > 0 && 
+                    data.candidates[0].content && 
+                    data.candidates[0].content.parts && 
+                    data.candidates[0].content.parts.length > 0) {
+                    
+                    const text = data.candidates[0].content.parts[0].text;
+                    // Replace the loading message with the actual response
+                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${text}`;
+                } else {
+                    throw new Error('Invalid response structure from API');
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                // More user-friendly error message
+                loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I'm having trouble answering that. Please try again later.`;
+            }
+        }
+
+        // Privacy Policy and Terms Placeholder Functions
+        function showPrivacyPolicy() {
+            alert('Privacy policy will be displayed here. This is a demo.');
+        }
+
+        function showTerms() {
+            alert('Terms of service will be displayed here. This is a demo.');
+        }
+
+        // Initialize usage counter
+        updateUsageCounter();
+    </script>
+</body>
+</html>
