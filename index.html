@@ -4,9 +4,250 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drona AI - Your Modern Dronacharya in the Battle of Exams</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
+    <script type="module">
+        // Firebase Modular Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4Mv54EBKRwLGeoZGC1-LbKRn-AjH5IUM",
+            authDomain: "drona-ai-ad064.firebaseapp.com",
+            projectId: "drona-ai-ad064",
+            storageBucket: "drona-ai-ad064.firebasestorage.app",
+            messagingSenderId: "1072044159719",
+            appId: "1:1072044159719:web:a03f848e57543607c3e842",
+            measurementId: "G-2XVBZCJZ00"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global Variables
+        let currentUser = null;
+        let questionsAsked = 0;
+        let isAuthMode = 'login';
+
+        // Authentication Functions
+        window.showAuth = function(mode) {
+            isAuthMode = mode;
+            const modal = document.getElementById('authModal');
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const buttonText = document.getElementById('authButtonText');
+            const switchText = document.getElementById('authSwitchText');
+            const switchLink = document.getElementById('authSwitchLink');
+
+            if (mode === 'login') {
+                title.textContent = 'Welcome Back!';
+                subtitle.textContent = 'Sign in to access unlimited questions and save your progress';
+                buttonText.textContent = 'Login';
+                switchText.textContent = "Don't have an account?";
+                switchLink.textContent = 'Sign Up';
+            } else {
+                title.textContent = 'Create Account';
+                subtitle.textContent = 'Join thousands of students learning with Drona AI';
+                buttonText.textContent = 'Sign Up';
+                switchText.textContent = 'Already have an account?';
+                switchLink.textContent = 'Login';
+            }
+
+            modal.style.display = 'block';
+        };
+
+        window.closeAuth = function() {
+            document.getElementById('authModal').style.display = 'none';
+        };
+
+        window.switchAuthMode = function() {
+            isAuthMode = isAuthMode === 'login' ? 'register' : 'login';
+            window.showAuth(isAuthMode);
+        };
+
+        window.handleAuth = async function() {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                if (isAuthMode === 'login') {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
+                window.closeAuth();
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+
+        window.signInWithGoogle = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                window.closeAuth();
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                document.querySelector('.auth-buttons').innerHTML = `
+                    <button class="btn btn-outline" onclick="window.signOut()">Logout</button>
+                    <span style="margin-left: 10px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-user-circle"></i> 
+                        ${user.displayName || user.email}
+                    </span>
+                `;
+                document.getElementById('usageCounter').style.display = 'none';
+            } else {
+                document.querySelector('.auth-buttons').innerHTML = `
+                    <button class="btn btn-outline" onclick="window.showAuth('login')">Login</button>
+                    <button class="btn btn-primary" onclick="window.showAuth('register')">Sign Up</button>
+                `;
+                document.getElementById('usageCounter').style.display = 'block';
+            }
+        });
+
+        window.signOut = function() {
+            signOut(auth);
+        };
+
+        // Chat Functions
+        window.startChat = function() {
+            document.getElementById('chatContainer').style.display = 'block';
+            document.getElementById('chatInput').focus();
+        };
+
+        window.closeChat = function() {
+            document.getElementById('chatContainer').style.display = 'none';
+        };
+
+        window.handleKeyPress = function(event) {
+            if (event.key === 'Enter') {
+                window.sendMessage();
+            }
+        };
+
+        // Function to add a message to the chat
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Drona AI'}:</strong> ${text}`;
+            
+            messagesContainer.appendChild(messageDiv);
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        function updateUsageCounter() {
+            document.getElementById('questionsLeft').textContent = (5 - questionsAsked).toString();
+        }
+
+        window.sendMessage = async function() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Check usage limits for non-authenticated users
+            if (!currentUser) {
+                if (questionsAsked >= 5) {
+                    window.showAuth('register');
+                    return;
+                }
+                questionsAsked++;
+                updateUsageCounter();
+            }
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Show loading
+            const loadingDiv = addMessage('<span class="loading"></span> Thinking...', 'ai');
+
+            try {
+                // Gemini API request
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyB4Mv54EBKRwLGeoZGC1-LbKRn-AjH5IUM`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are Drona AI, an expert AI tutor. Answer this student's question clearly and helpfully. Keep responses concise and educational.\n\nStudent: ${message}\nDrona AI:`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 1024
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Check for API errors
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'API request failed');
+                }
+                
+                // Validate response structure
+                if (data.candidates && 
+                    data.candidates.length > 0 && 
+                    data.candidates[0].content && 
+                    data.candidates[0].content.parts && 
+                    data.candidates[0].content.parts.length > 0) {
+                    
+                    const text = data.candidates[0].content.parts[0].text;
+                    // Replace the loading message with the actual response
+                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${text}`;
+                } else {
+                    throw new Error('Invalid response structure from API');
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                // More user-friendly error message
+                loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I'm having trouble answering that. Please try again later.`;
+            }
+        };
+
+        // Privacy Policy and Terms Placeholder Functions
+        window.showPrivacyPolicy = function() {
+            alert('Privacy policy will be displayed here. This is a demo.');
+        };
+
+        window.showTerms = function() {
+            alert('Terms of service will be displayed here. This is a demo.');
+        };
+
+        // Initialize usage counter
+        updateUsageCounter();
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -34,10 +275,8 @@
             color: var(--text-light);
             overflow-x: hidden;
             line-height: 1.6;
-            cursor: default; /* Restore default cursor */
+            cursor: default;
         }
-
-        /* Cursor styles removed */
 
         /* Navigation */
         .navbar {
@@ -820,232 +1059,5 @@
             <p style="margin-top: 40px; opacity: 0.7;">© 2025 Drona AI. Empowering students to achieve their dreams.</p>
         </div>
     </footer>
-
-    <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q",
-            authDomain: "drona-ai-ad064.firebaseapp.com",
-            projectId: "drona-ai-ad064",
-            storageBucket: "drona-ai-ad064.appspot.com",
-            messagingSenderId: "103522988070603085900",
-            appId: "1:103522988070603085900:web:abcdef123456789"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Global Variables
-        let currentUser = null;
-        let questionsAsked = 0;
-        let isAuthMode = 'login';
-
-        // Authentication Functions
-        function showAuth(mode) {
-            isAuthMode = mode;
-            const modal = document.getElementById('authModal');
-            const title = document.getElementById('authTitle');
-            const subtitle = document.getElementById('authSubtitle');
-            const buttonText = document.getElementById('authButtonText');
-            const switchText = document.getElementById('authSwitchText');
-            const switchLink = document.getElementById('authSwitchLink');
-
-            if (mode === 'login') {
-                title.textContent = 'Welcome Back!';
-                subtitle.textContent = 'Sign in to access unlimited questions and save your progress';
-                buttonText.textContent = 'Login';
-                switchText.textContent = "Don't have an account?";
-                switchLink.textContent = 'Sign Up';
-            } else {
-                title.textContent = 'Create Account';
-                subtitle.textContent = 'Join thousands of students learning with Drona AI';
-                buttonText.textContent = 'Sign Up';
-                switchText.textContent = 'Already have an account?';
-                switchLink.textContent = 'Login';
-            }
-
-            modal.style.display = 'block';
-        }
-
-        function closeAuth() {
-            document.getElementById('authModal').style.display = 'none';
-        }
-
-        function switchAuthMode() {
-            isAuthMode = isAuthMode === 'login' ? 'register' : 'login';
-            showAuth(isAuthMode);
-        }
-
-        async function handleAuth() {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-
-            if (!email || !password) {
-                alert('Please fill in all fields');
-                return;
-            }
-
-            try {
-                if (isAuthMode === 'login') {
-                    await auth.signInWithEmailAndPassword(email, password);
-                } else {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                }
-                closeAuth();
-            } catch (error) {
-                alert(error.message);
-            }
-        }
-
-        async function signInWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                await auth.signInWithPopup(provider);
-                closeAuth();
-            } catch (error) {
-                alert(error.message);
-            }
-        }
-
-        // Auth State Observer
-        auth.onAuthStateChanged((user) => {
-            currentUser = user;
-            if (user) {
-                document.querySelector('.auth-buttons').innerHTML = `
-                    <button class="btn btn-outline" onclick="auth.signOut()">Logout</button>
-                    <span style="margin-left: 10px; display: flex; align-items: center; gap: 5px;">
-                        <i class="fas fa-user-circle"></i> 
-                        ${user.displayName || user.email}
-                    </span>
-                `;
-                document.getElementById('usageCounter').style.display = 'none';
-            } else {
-                document.querySelector('.auth-buttons').innerHTML = `
-                    <button class="btn btn-outline" onclick="showAuth('login')">Login</button>
-                    <button class="btn btn-primary" onclick="showAuth('register')">Sign Up</button>
-                `;
-                document.getElementById('usageCounter').style.display = 'block';
-            }
-        });
-
-        // Chat Functions
-        function startChat() {
-            document.getElementById('chatContainer').style.display = 'block';
-            document.getElementById('chatInput').focus();
-        }
-
-        function closeChat() {
-            document.getElementById('chatContainer').style.display = 'none';
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
-        // Function to add a message to the chat
-        function addMessage(text, sender) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Drona AI'}:</strong> ${text}`;
-            
-            messagesContainer.appendChild(messageDiv);
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            return messageDiv;
-        }
-
-        function updateUsageCounter() {
-            document.getElementById('questionsLeft').textContent = (5 - questionsAsked).toString();
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            // Check usage limits for non-authenticated users
-            if (!currentUser) {
-                if (questionsAsked >= 5) {
-                    showAuth('register');
-                    return;
-                }
-                questionsAsked++;
-                updateUsageCounter();
-            }
-
-            // Add user message
-            addMessage(message, 'user');
-            input.value = '';
-
-            // Show loading
-            const loadingDiv = addMessage('<span class="loading"></span> Thinking...', 'ai');
-
-            try {
-                // Updated Gemini API request format
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCJG2AP2ZNUrpBIs4jjbvCzFdxHKyhwu-Q`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `You are Drona AI, an expert AI tutor. Answer this student's question clearly and helpfully. Keep responses concise and educational.\n\nStudent: ${message}\nDrona AI:`
-                            }]
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 1024
-                        }
-                    })
-                });
-
-                const data = await response.json();
-                
-                // Check for API errors
-                if (!response.ok) {
-                    throw new Error(data.error?.message || 'API request failed');
-                }
-                
-                // Validate response structure
-                if (data.candidates && 
-                    data.candidates.length > 0 && 
-                    data.candidates[0].content && 
-                    data.candidates[0].content.parts && 
-                    data.candidates[0].content.parts.length > 0) {
-                    
-                    const text = data.candidates[0].content.parts[0].text;
-                    // Replace the loading message with the actual response
-                    loadingDiv.innerHTML = `<strong>Drona AI:</strong> ${text}`;
-                } else {
-                    throw new Error('Invalid response structure from API');
-                }
-            } catch (error) {
-                console.error('API Error:', error);
-                // More user-friendly error message
-                loadingDiv.innerHTML = `<strong>Drona AI:</strong> Sorry, I'm having trouble answering that. Please try again later.`;
-            }
-        }
-
-        // Privacy Policy and Terms Placeholder Functions
-        function showPrivacyPolicy() {
-            alert('Privacy policy will be displayed here. This is a demo.');
-        }
-
-        function showTerms() {
-            alert('Terms of service will be displayed here. This is a demo.');
-        }
-
-        // Initialize usage counter
-        updateUsageCounter();
-    </script>
 </body>
 </html>
