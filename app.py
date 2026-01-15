@@ -9,11 +9,17 @@ from pypdf import PdfReader
 from openai import OpenAI
 
 # ---------------- ENV / CLIENT ----------------
-load_dotenv()
+api_key = st.secrets.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+
+if not api_key:
+    st.error("OPENROUTER_API_KEY not found. Please set it in Streamlit secrets.")
+    st.stop()
+
 client = OpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
+    api_key=api_key,
     base_url="https://openrouter.ai/api/v1"
 )
+
 
 # ---------------- HELPERS ----------------
 def extract_text_from_pdf(file) -> str:
