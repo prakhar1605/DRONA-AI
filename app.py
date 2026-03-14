@@ -172,9 +172,8 @@ if st.session_state.page == "setup":
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader("Upload PDF (Optional)")
-        uploaded = st.file_uploader("Choose a PDF file", type=["pdf"], label_visibility="collapsed")
-        
+        st.subheader("Upload Document")
+        uploaded = st.file_uploader("Choose a Document (PDF)", type=["pdf"], label_visibility="collapsed")        
         st.subheader("Add Topics")
         col_input, col_btn = st.columns([3, 1])
         with col_input:
