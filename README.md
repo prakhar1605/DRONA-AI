@@ -6,7 +6,7 @@ Drona AI is an intelligent interview simulation platform that leverages Large La
 - Adaptive technical interview simulation using LLMs 
 - Resume-aware questioning via Retrieval-Augmented Generation (RAG)
 - Document-grounded evaluation using uploaded PDF resumes
-- Personalized feedback highlighting strengths and improvement areas
+- Personalized feedback highlighting strengths and improvement areas 
 - Real-time interaction through a Streamlit-based UI
 
 ## 🧠 System Architecture
