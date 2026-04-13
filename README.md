@@ -1,6 +1,6 @@
 # Drona AI – LLM Interview Platform
 
-Drona AI is an intelligent interview simulation platform that leverages Large Language Models (LLMs) and Retrieval-Augmented Generation (RAG) to conduct adaptive technical interviews and generate grounded, resume-aware feedback.
+Drona AI is an intelligent interview simulation platform that leverages Large Language Mo dels (LLMs) and Retrieval-Augmented Generation (RAG) to conduct adaptive technical interviews and generate grounded, resume-aware feedback.
 
 ## 🚀 Features 
 - Adaptive technical interview simulation using LLMs 
