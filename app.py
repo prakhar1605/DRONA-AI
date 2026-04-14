@@ -2,7 +2,7 @@ import os
 import re
 import time
 import json
-from typing import List, Generator, Optional  
+from typing import List, Generator, Optional   
 import streamlit as st
 from dotenv import load_dotenv 
 from pypdf import PdfReader 
