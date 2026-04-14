@@ -6,7 +6,7 @@ from typing import List, Generator, Optional
 import streamlit as st 
 from dotenv import load_dotenv  
 from pypdf import PdfReader  
-from openai import OpenAI   
+from openai import OpenAI    
   
 # ---------------- ENV / CLIENT ----------------
 api_key = st.secrets.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
