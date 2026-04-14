@@ -11,7 +11,7 @@ from openai import OpenAI
 # ---------------- ENV / CLIENT ----------------
 api_key = st.secrets.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
 
-if not api_key:
+if not api_key: 
     st.error("OPENROUTER_API_KEY not found. Please set it in Streamlit secrets.")
     st.stop()
 
