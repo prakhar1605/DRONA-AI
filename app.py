@@ -4,7 +4,7 @@ import time
 import json
 from typing import List, Generator, Optional   
 import streamlit as st 
-from dotenv import load_dotenv  
+from dotenv import load_dotenv   
 from pypdf import PdfReader   
 from openai import OpenAI    
   
