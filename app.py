@@ -30,7 +30,7 @@ def extract_text_from_pdf(file) -> str:
     for p in reader.pages:
         try:
             pages.append(p.extract_text() or "")
-        except Exception:
+        except Exception: 
             pages.append("")
     return "\n".join(pages)
 
